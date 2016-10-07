@@ -1,5 +1,5 @@
 var spider = require('./spider');
-
+var dbsave = require('./dbsave');
 
 var domains={};
 var urllist=["http://www.swust.edu.cn/"];
@@ -26,7 +26,7 @@ function run(){
   }
   if(urllist.length>0){
     var url=urllist.shift();
-    if(cachingnum<100){
+    if(cachingnum<50){
       console.log(cachingnum,urllist.length,cachedurlnum);
       cachedurl[url]=true;
       cachingnum++;
@@ -38,19 +38,26 @@ function run(){
         if(!domains[domain]){
           domains[domain]={};
         }
+        var title=data.title;
         var insites=data.insites;//站内连接
         var inoutsites=data.inoutsites;//站外同域网站
         var outsites=data.outsites;//外域网站（不访问）
         var srouces=data.srouces;//资源列表
         var interfaces=data.interfaces;//接口列表
-        domains[domain][data.path]={
-          insites:insites,
-          inoutsites:inoutsites,
-          outsites:outsites,
-          srouces:srouces,
-          interfaces:interfaces,
-          statusCode:data.statusCode
-        };
+
+        var state=0;//成功为0  失败为1
+        if(data.statusCode==404)state=1;
+
+        // domains[domain][data.path]={
+        //   title:title,
+        //   insites:insites,
+        //   inoutsites:inoutsites,
+        //   outsites:outsites,
+        //   srouces:srouces,
+        //   interfaces:interfaces,
+        //   state:state
+        // };
+        dbsave.addURL(url,title,state);
 
         insites.forEach(addUrl);
         inoutsites.forEach(addUrl);

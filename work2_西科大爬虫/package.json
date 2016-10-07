@@ -3,6 +3,7 @@
 	"version":"1.0.0",
 	"description": "node v4.4.7",
 	"dependencies":{
-		"request":"2.75.0"
+		"request":"2.75.0",
+		"mysql":"2.11.1"
 	}
 }

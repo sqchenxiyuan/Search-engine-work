@@ -9,17 +9,19 @@ exports.cache=function(URL,callback){
   var path=URL.split(domain)[1]||"/";//路径
   //console.log("爬取  "+URL+"  中");
 
+  var title="";//标题
   var insites=[];//站内连接
   var inoutsites=[];//站外同域网站（不访问）
   var outsites=[];//外域网站（不访问）
   var srouces=[];//资源列表
   var interfaces=[];//接口列表
-  request(URL,{timeout: 3000}, function (error, response, body){
+  request(URL,{timeout: 20000}, function (error, response, body){
 
 
     if(error||response.statusCode==404) {
       console.log(URL+" error!!");
       callback({
+        title:"错误！无法获取",
         agreement:agreement,
         domain:domain,
         path:path,
@@ -35,6 +37,7 @@ exports.cache=function(URL,callback){
     if(response.headers['content-type']&&response.headers['content-type'].match("text/html")==-1){
       console.log("!!!!!!!!!!!!!!!!",URL);
       callback({
+        title:"错误！无法获取",
         agreement:agreement,
         domain:domain,
         path:path,
@@ -49,7 +52,12 @@ exports.cache=function(URL,callback){
     }
     //console.log(URL);
     var hrefs=body.match(/("(http(s)?|\/)[^" ]+"|'(http(s)?|\/)[^' ]+')/g);
-
+    try{
+      title=body.match(/<title>[\s\S]*?<\/title>/)[0].replace(/(<title>|<\/title>)/g,"");
+    }catch(e){
+      console.log(URL);
+      title=URL;
+    }
     if(hrefs){
       hrefs.forEach(function(a,index){
         a=a.replace(/("|')/g,"");
@@ -108,6 +116,7 @@ exports.cache=function(URL,callback){
     // console.log(inoutsites.length);
     //console.log("爬取  "+URL+"  完毕");
     if(callback)callback({
+      title:title,
       agreement:agreement,
       domain:domain,
       path:path,
