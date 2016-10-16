@@ -4,6 +4,7 @@
 	"description": "node v4.4.7",
 	"dependencies":{
 		"request":"2.75.0",
-		"mysql":"2.11.1"
+		"mysql":"2.11.1",
+		"iconv-lite":"0.4.13"
 	}
 }
