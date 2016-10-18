@@ -11,6 +11,7 @@ exports.cache=function(URL,callback){
   //console.log("爬取  "+URL+"  中");
 
   var title="";//标题
+  var date="";
   var insites=[];//站内连接
   var inoutsites=[];//站外同域网站（不访问）
   var outsites=[];//外域网站（不访问）
@@ -21,6 +22,8 @@ exports.cache=function(URL,callback){
     if(error) {
       data={
         title:"错误！无法获取",
+        date:"错误！无法获取",
+        body:"错误！无法获取",
         agreement:agreement,
         domain:domain,
         path:path,
@@ -33,6 +36,7 @@ exports.cache=function(URL,callback){
       };
       if(error.code === 'ETIMEDOUT'){
         data.title="连接超时！";
+        data.body="连接超时！";
         data.statusCode=10001;
       }else{
         console.log(URL+" error!!");
@@ -43,6 +47,8 @@ exports.cache=function(URL,callback){
     if(response.statusCode==404){
        data={
         title:"错误！无法获取",
+        date:"错误！无法获取",
+        body:"错误！无法获取",
         agreement:agreement,
         domain:domain,
         path:path,
@@ -57,10 +63,17 @@ exports.cache=function(URL,callback){
       return;
     }
 
+    if(response.headers){
+      var x=new Date(response.headers.date);
+      date=x.getFullYear()+'-'+(x.getMonth()+1)+'-'+x.getDate()+" "+x.getHours()+":"+x.getMinutes()+":"+x.getSeconds();
+    }
+
     if(response.headers&&response.headers['content-type']&&response.headers['content-type'].match("text/html")==-1){
       console.log("!!!!!!!!!!!!!!!!",URL);
       callback({
         title:"错误！不是有效网页",
+        date:date,
+        body:"错误！不是有效网页",
         agreement:agreement,
         domain:domain,
         path:path,
@@ -88,6 +101,8 @@ exports.cache=function(URL,callback){
             }else{
               callback({
                 title:"网页编码有误",
+                date:date,
+                body:"网页编码有误",
                 agreement:agreement,
                 domain:domain,
                 path:path,
@@ -171,8 +186,18 @@ exports.cache=function(URL,callback){
     // console.log(inoutsites);
     // console.log(inoutsites.length);
     //console.log("爬取  "+URL+"  完毕");
+    var bodystr;
+    if(body.match(/<body>/)){
+      bodystr=body.split(/<body[^>]*>/)[1].substr(0,1000);
+    }else{
+      bodystr=body.substr(0,1000);
+    }
+
+
     if(callback)callback({
       title:title,
+      date:date,
+      body:bodystr,
       agreement:agreement,
       domain:domain,
       path:path,

@@ -12,6 +12,10 @@ var cachedurl={};
 var cachedurlnum=0;
 
 
+var startdate=new Date();
+var endgdate;
+var endsdate;
+
 start(run);
 function run(){
   if(urllist.length===0&&cachingnum===0){
@@ -29,17 +33,16 @@ function run(){
     var url=urllist.shift();
     if(cachingnum<50){
       console.log(cachingnum,urllist.length,cachedurlnum);
-      cachedurl[url]=true;
       cachingnum++;
       spider.cache(url,function(data){
-        cachingnum--;
-        cachedurlnum++;
         console.log("完毕",cachingnum,urllist.length,cachedurlnum);
         var domain=data.domain;
         if(!domains[domain]){
           domains[domain]={};
         }
         var title=data.title;
+        var date=data.date;
+        var body=data.body;
         var insites=data.insites;//站内连接
         var inoutsites=data.inoutsites;//站外同域网站
         var outsites=data.outsites;//外域网站（不访问）
@@ -50,6 +53,8 @@ function run(){
 
         var domaindata={
           title:title,
+          date:date,
+          body:body,
           insites:insites,
           inoutsites:inoutsites,
           outsites:outsites,
@@ -59,6 +64,7 @@ function run(){
         };
         if(domains[domain][data.path]){
           if(domaindata.title!=domains[domain][data.path].title||
+            domaindata.date!=domains[domain][data.path].date||
             // Object.keys(domaindata.insites).length!=Object.keys(domains[domain][data.path].insites).length||
             // Object.keys(domaindata.inoutsites).length!=Object.keys(domains[domain][data.path].inoutsites).length||
             // Object.keys(domaindata.outsites).length!=Object.keys(domains[domain][data.path].outsites).length||
@@ -83,6 +89,9 @@ function run(){
             cachedurl[url]=true;
           }
         }
+
+        cachingnum--;
+        cachedurlnum++;
       });
     }
   }
@@ -108,6 +117,7 @@ function start(callback){
       pathdata.forEach(function(b){
         x[b.domainId][b.path]={
           title:b.title,
+          body:b.body,
           insites:JSON.parse(b.insites),
           inoutsites:JSON.parse(b.inoutsites),
           outsites:JSON.parse(b.outsites),
@@ -116,6 +126,7 @@ function start(callback){
           statuscode:b.statuscode
         };
       });
+      endgdate=new Date();
       callback();
     });
 
@@ -125,6 +136,7 @@ function start(callback){
 
 
 function end(){
+  endsdate=new Date();
   var adddomain=0;
   var addpath=0;
   var updatepath=0;
@@ -195,7 +207,10 @@ function end(){
       });
     }
   }
+  console.log(Object.keys(cachedurl));
   console.log("域名总数："+Object.keys(domains).length+" 路径总数："+Object.keys(cachedurl).length);
   console.log("新增域名："+adddomain+" 新增路径："+addpath+" 更新路径："+updatepath+" 无变化路径："+oldnumpath+" 丢失路径："+delnumpath);
   console.log("错误总数："+err+" 超时总数："+err_outtime+" 404总数："+err_404+" 编码有错总数："+err_code+" 非HTML总数："+err_nothtml);
+  console.log("加载数据用时："+(endgdate.getTime()-startdate.getTime())+"ms"+
+              " 爬取内容用时："+(endsdate.getTime()-endgdate.getTime())+"ms");
 }

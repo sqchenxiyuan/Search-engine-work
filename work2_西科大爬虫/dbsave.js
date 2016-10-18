@@ -12,9 +12,9 @@ exports.getPath=function(callback){
 };
 
 exports.addPath=function(domainId,path,obj){
-  db.query('INSERT INTO paths SET domainId = ?, path = ?,title = ?,insites=?,insitesnum=?,inoutsites=?,inoutsitesnum=?,'+
+  db.query('INSERT INTO paths SET domainId = ?, path = ?,title = ?,date=?, body = ?,insites=?,insitesnum=?,inoutsites=?,inoutsitesnum=?,'+
   'outsites=?,outsitesnum=?,srouces=?,sroucesnum=?,interfaces=?,interfacesnum=?,statuscode=?,createtime=NOW(),updatetime=NOW()',
-  [domainId,path,obj.title,JSON.stringify(obj.insites),Object.keys(obj.insites).length,
+  [domainId,path,obj.title,obj.date,obj.body,JSON.stringify(obj.insites),Object.keys(obj.insites).length,
   JSON.stringify(obj.insites),Object.keys(obj.insites).length,
   JSON.stringify(obj.inoutsites),Object.keys(obj.inoutsites).length,
   JSON.stringify(obj.srouces),Object.keys(obj.srouces).length,
@@ -26,9 +26,9 @@ exports.addPath=function(domainId,path,obj){
 };
 
 exports.updatePath=function(domainId,path,obj){
-  db.query('update paths SET title = ?,insites=?,insitesnum=?,inoutsites=?,inoutsitesnum=?,'+
+  db.query('update paths SET title = ?,date=?,body = ?,insites=?,insitesnum=?,inoutsites=?,inoutsitesnum=?,'+
   'outsites=?,outsitesnum=?,srouces=?,sroucesnum=?,interfaces=?,interfacesnum=?,statuscode=?,updatetime=NOW() where domainId=? and path=? ',
-  [obj.title,JSON.stringify(obj.insites),Object.keys(obj.insites).length,
+  [obj.title,obj.date,obj.body,JSON.stringify(obj.insites),Object.keys(obj.insites).length,
   JSON.stringify(obj.insites),Object.keys(obj.insites).length,
   JSON.stringify(obj.inoutsites),Object.keys(obj.inoutsites).length,
   JSON.stringify(obj.srouces),Object.keys(obj.srouces).length,
