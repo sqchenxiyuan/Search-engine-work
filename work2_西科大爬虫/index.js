@@ -137,6 +137,7 @@ function start(callback){
 
 function end(){
   endsdate=new Date();
+  var allpath=0;
   var adddomain=0;
   var addpath=0;
   var updatepath=0;
@@ -151,6 +152,7 @@ function end(){
 
   for(var name in domains){
     if(domains[name].id){
+      allpath+=Object.keys(domains[name]).length-2;
       dbsave.updateDomain(domains[name].id,Object.keys(domains[name]).length-2);
       for(var path in domains[name]){
         if(path=="id"||path=="updatenum") continue;
@@ -196,6 +198,7 @@ function end(){
     else
     {
       adddomain++;
+      allpath+=Object.keys(domains[name]).length;
       addpath+=Object.keys(domains[name]).length;
       dbsave.addDomain(name,Object.keys(domains[name]).length,function(a){
         domains[a.domain].id=a.id;
@@ -207,8 +210,7 @@ function end(){
       });
     }
   }
-  console.log(Object.keys(cachedurl));
-  console.log("域名总数："+Object.keys(domains).length+" 路径总数："+Object.keys(cachedurl).length);
+  console.log("爬取域名总数："+Object.keys(domains).length+" 爬取路径总数："+allpath);
   console.log("新增域名："+adddomain+" 新增路径："+addpath+" 更新路径："+updatepath+" 无变化路径："+oldnumpath+" 丢失路径："+delnumpath);
   console.log("错误总数："+err+" 超时总数："+err_outtime+" 404总数："+err_404+" 编码有错总数："+err_code+" 非HTML总数："+err_nothtml);
   console.log("加载数据用时："+(endgdate.getTime()-startdate.getTime())+"ms"+
