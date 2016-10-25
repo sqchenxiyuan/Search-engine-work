@@ -3,6 +3,7 @@
 	"version":"1.0.0",
 	"description": "node v4.4.7",
 	"dependencies":{
-		"segment":"0.1.3"
+		"segment":"0.1.3",
+		"iconv-lite":"0.4.13"
 	}
 }
