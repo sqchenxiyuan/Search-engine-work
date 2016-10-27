@@ -1,19 +1,21 @@
 var path=require('path'),
 iconv = require('iconv-lite'),
-fs=require('fs');
+fs=require('fs'),
+Q=require('./Qcallback').Qc;
 
-var Dictionarys=[];
-var maxlength;
+var Dictionarys={};
+var maxlength=0;
 
 start();
 function start(){
+  console.time("加载字典");
   getDictionary(function(data){
     initDictionary(data,function(){
+      console.timeEnd("加载字典");
       startparticiple();
     });
   });
 }
-
 
 function getDictionary(callback){
   fs.readFile(__dirname+'/中文分词词库/30万中文分词词库.txt',"utf-8", function(err, data) {
@@ -31,33 +33,29 @@ function getDictionary(callback){
 
 function initDictionary(data,callback){
   data.forEach(function(a){
-    if(!Dictionarys[a.length]) Dictionarys[a.length]=[];
-    Dictionarys[a.length].push(a);
+
+    var dc=Dictionarys;
+    var l=a.length;
+    if(l>maxlength)maxlength=l;
+
+    //树状哈希
+    // for(var i=0;i<l;i++){
+    //   var char=a.charAt(i);
+    //   if(dc[char]) dc=dc[char];
+    //   else{
+    //     dc[char]={};
+    //     dc=dc[char];
+    //   }
+    // }
+
+    //纯哈希
+    //dc[a]=true;
+
+    //长度分组哈希
+    if(!dc[l])dc[l]={};
+    dc[l][a]=true;
   });
-  maxlength=Dictionarys.length-1;
   if(typeof callback == 'function')callback();
-}
-
-function startparticiple(){
-  fs.readFile(__dirname+'/演示语料转码后/(国际)(1)探访日本大型太阳能电池试验场.txt',"utf-8", function(err, data) {
-      if (err) {
-          throw err;
-      }
-      console.log(data);
-
-      // // 载入模块
-      // var Segment = require('segment');
-      // // 创建实例
-      // var segment = new Segment();
-      // // 使用默认的识别模块及字典，载入字典文件需要1秒，仅初始化时执行一次即可
-      // segment.useDefault();
-      //
-      // // 开始分词
-      // console.log(segment.doSegment(data));
-      participle(data);
-
-
-  });
 }
 
 function participle(str){
@@ -67,20 +65,29 @@ function participle(str){
     var ci;
     var l=Math.min(maxlength-1,str.length);
     for(;l>=1;l--){
+
       ci=str.substring(0,l);
       if(l==1){
         break;
       }
-      if(Dictionarys[l]){
-        var ok=false;
-        Dictionarys[l].forEach(function(a){
-          if(a==ci){
-            //console.log(a);
-            ok=true;
-          }
-        });
-        if(ok)break;
-      }
+
+      var dc=Dictionarys;
+      //树状哈希
+      // var j=ci.length;
+      // var ok=true;
+      // for(var i=0;i<j;i++){
+      //   var char=ci.charAt(i);
+      //   if(dc[char]) dc=dc[char];
+      //   else ok=false;
+      // }
+      // if(ok)break;
+
+      //纯哈希
+      //if(dc[ci])break;
+
+      //长度分组哈希
+      if(dc[l][ci])break;
+
       //判断为英文或者数字
       var ref=new RegExp(/^[\d\w\.]*$/);
       if(ref.test(ci))break;
@@ -88,5 +95,58 @@ function participle(str){
     result.push(ci);
     str=str.substring(l,str.length);
   }
-  console.log(result);
+  return result;
+}
+
+// 载入模块
+var Segment = require('segment');
+// 创建实例
+var segment = new Segment();
+// 使用默认的识别模块及字典，载入字典文件需要1秒，仅初始化时执行一次即可
+segment.useDefault();
+
+function startparticiple(){
+  var qc=new Q();
+  qc.setdelay(1);
+  qc.setmaxrunnum(100);
+  qc.setrunFun(function(name,callback){
+    console.log("开始分词 "+name);
+
+    fs.readFile(__dirname+'/演示语料转码后/'+name,"utf-8", function(err, data) {
+        if (err) {
+            throw err;
+        }
+
+
+        // 开始分词
+        //var resulttxt=segment.doSegment(data).join("\r\n");
+        var resulttxt=participle(data).join("\r\n");
+        fs.writeFile(__dirname+'/分词结果/'+name,resulttxt,'utf-8',function(err){
+          if(err)console.log(err);
+          console.log("完成分词 "+name);
+          callback();
+        });
+    });
+  });
+  qc.setendFun(function(){
+    console.timeEnd("分词时间");
+    console.log("完成！");
+  });
+
+  fs.readdir(__dirname+'/演示语料转码后',function(err,files){
+    if(err){
+      console.log(err);
+      return;
+    }
+    var x=0;
+    files.forEach(function(a){
+      if(!x){
+        qc.start();
+        console.time("分词时间");
+        x=1;
+      }
+      qc.addData(a);
+    });
+    qc.end();
+  });
 }
