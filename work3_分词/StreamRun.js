@@ -1,6 +1,7 @@
 var path=require('path'),
 iconv = require('iconv-lite'),
 fs=require('fs'),
+Stream = require('stream'),
 Q=require('./Qcallback').Qc;
 
 var Dictionarys={};
@@ -123,19 +124,31 @@ function startparticiple(){
   qc.setmaxrunnum(100);
   qc.setrunFun(function(name,callback){
     console.time("分词时间"+name);
-    fs.readFile(__dirname+'/演示语料转码后/'+name,"utf-8", function(err, data) {
-        if (err) {
-            throw err;
-        }
-        // 开始分词
-        //var resulttxt=segment.doSegment(data).join("\r\n");
-        var resulttxt=participle(data).join("\r\n");
-        fs.writeFile(__dirname+'/分词结果/'+name,resulttxt,'utf-8',function(err){
-          if(err)console.log(err);
-          console.timeEnd("分词时间"+name);
-          callback();
-        });
+    // fs.readFile(__dirname+'/演示语料转码后/'+name,"utf-8", function(err, data) {
+    //     if (err) {
+    //         throw err;
+    //     }
+    //     // 开始分词
+    //     //var resulttxt=segment.doSegment(data).join("\r\n");
+    //     var resulttxt=participle(data).join("\r\n");
+    //     fs.writeFile(__dirname+'/分词结果/'+name,resulttxt,'utf-8',function(err){
+    //       if(err)console.log(err);
+    //       console.timeEnd("分词时间"+name);
+    //       callback();
+    //     });
+    // });
+    var readStream = fs.createReadStream(__dirname+'/演示语料转码后/'+name);
+    var writeStream = fs.createWriteStream(__dirname+'/分词结果/'+name);
+    readStream.on("data",function(data){
+      //console.log("1123"+name+data.toString());
     });
+    readStream.on("end",function(data){
+      //console.log("END!"+name);
+      writeStream.end("123");
+      console.timeEnd("分词时间"+name);
+      callback();
+    });
+
   });
   qc.setendFun(function(){
     console.timeEnd("分词时间");
