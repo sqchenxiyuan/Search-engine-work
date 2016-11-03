@@ -5,13 +5,16 @@ Q=require('./Qcallback').Qc;
 
 var Dictionarys={};
 var maxlength=0;
+var loadD;
 
 start();
 function start(){
+  var sd=new Date();
   console.time("加载字典");
   getDictionary(function(data){
     initDictionary(data,function(){
       console.timeEnd("加载字典");
+      loadD=new Date().getTime()-sd.getTime();
       startparticiple();
     });
   });
@@ -63,7 +66,7 @@ function participle(str){
   str=str.replace(/\s/g,"");
   var result=[];
   while(str){
-    var ci;
+    //var ci;
     //var l=Math.min(maxlength-1,str.length);
     // for(;l>=1;l--){
     //
@@ -119,6 +122,8 @@ segment.useDefault();
 
 function startparticiple(){
   var qc=new Q();
+  var strl=0;
+  var strt=0;
   qc.setdelay(3);
   qc.setmaxrunnum(100);
   qc.setrunFun(function(name,callback){
@@ -129,7 +134,10 @@ function startparticiple(){
         }
         // 开始分词
         //var resulttxt=segment.doSegment(data).join("\r\n");
+        strl+=data.length;
+        var date=new Date();
         var resulttxt=participle(data).join("\r\n");
+        strt+=new Date().getTime()-date.getTime();
         fs.writeFile(__dirname+'/分词结果/'+name,resulttxt,'utf-8',function(err){
           if(err)console.log(err);
           console.timeEnd("分词时间"+name);
@@ -138,7 +146,10 @@ function startparticiple(){
     });
   });
   qc.setendFun(function(){
-    console.timeEnd("分词时间");
+    console.log("加载词典用时 "+loadD+" ms");
+    console.timeEnd("分词总时间(IO)");
+    console.log("分词量累计 "+strl+" 字");
+    console.log("分词时间累计 "+strt+" ms");
     console.log("完成！");
   });
 
@@ -151,7 +162,7 @@ function startparticiple(){
     files.forEach(function(a){
       if(!x){
         qc.start();
-        console.time("分词时间");
+        console.time("分词总时间(IO)");
         x=1;
       }
       qc.addData(a);
