@@ -1,20 +1,18 @@
 var path=require('path'),
 iconv = require('iconv-lite'),
 fs=require('fs'),
+Stream = require('stream'),
 Q=require('./Qcallback').Qc;
 
 var Dictionarys={};
 var maxlength=0;
-var loadD;
 
 start();
 function start(){
-  var sd=new Date();
   console.time("加载字典");
   getDictionary(function(data){
     initDictionary(data,function(){
       console.timeEnd("加载字典");
-      loadD=new Date().getTime()-sd.getTime()
       startparticiple();
     });
   });
@@ -66,7 +64,7 @@ function participle(str){
   str=str.replace(/\s/g,"");
   var result=[];
   while(str){
-    //var ci;
+    var ci;
     //var l=Math.min(maxlength-1,str.length);
     // for(;l>=1;l--){
     //
@@ -122,34 +120,38 @@ segment.useDefault();
 
 function startparticiple(){
   var qc=new Q();
-  var strl=0;
-  var strt=0;
   qc.setdelay(3);
   qc.setmaxrunnum(100);
   qc.setrunFun(function(name,callback){
     console.time("分词时间"+name);
-    fs.readFile(__dirname+'/演示语料转码后/'+name,"utf-8", function(err, data) {
-        if (err) {
-            throw err;
-        }
-        // 开始分词
-        //var resulttxt=segment.doSegment(data).join("\r\n");
-        strl+=data.length;
-        var date=new Date();
-        var resulttxt=participle(data).join("\r\n");
-        strt+=new Date().getTime()-date.getTime();
-        fs.writeFile(__dirname+'/分词结果/'+name,resulttxt,'utf-8',function(err){
-          if(err)console.log(err);
-          console.timeEnd("分词时间"+name);
-          callback();
-        });
+    // fs.readFile(__dirname+'/演示语料转码后/'+name,"utf-8", function(err, data) {
+    //     if (err) {
+    //         throw err;
+    //     }
+    //     // 开始分词
+    //     //var resulttxt=segment.doSegment(data).join("\r\n");
+    //     var resulttxt=participle(data).join("\r\n");
+    //     fs.writeFile(__dirname+'/分词结果/'+name,resulttxt,'utf-8',function(err){
+    //       if(err)console.log(err);
+    //       console.timeEnd("分词时间"+name);
+    //       callback();
+    //     });
+    // });
+    var readStream = fs.createReadStream(__dirname+'/演示语料转码后/'+name);
+    var writeStream = fs.createWriteStream(__dirname+'/分词结果/'+name);
+    readStream.on("data",function(data){
+      //console.log("1123"+name+data.toString());
     });
+    readStream.on("end",function(data){
+      //console.log("END!"+name);
+      writeStream.end("123");
+      console.timeEnd("分词时间"+name);
+      callback();
+    });
+
   });
   qc.setendFun(function(){
     console.timeEnd("分词时间");
-    console.log(loadD);
-    console.log("分词量累计 "+strl+" 字");
-    console.log("分词时间累计 "+strt+" ms");
     console.log("完成！");
   });
 
