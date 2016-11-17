@@ -92,7 +92,8 @@ function startparticiple(){
   qc.setdelay(3);
   qc.setmaxrunnum(100);
   qc.setrunFun(function(name,callback){
-    console.time("分词时间--"+name);
+
+    //console.time("分词时间--"+name);
     fs.readFile(__dirname+'/演示语料转码后/'+name,"utf-8", function(err, data) {
         if (err) {
             throw err;
@@ -106,11 +107,12 @@ function startparticiple(){
           words:results
         });
         strt+=new Date().getTime()-date.getTime();
-        console.timeEnd("分词时间--"+name);
+        //console.timeEnd("分词时间--"+name);
         callback();
     });
   });
   qc.setendFun(function(){
+    console.log("分词结束");
     Calculate();
   });
 
@@ -123,6 +125,7 @@ function startparticiple(){
     files.forEach(function(a){
       if(!x){
         qc.start();
+        console.log("分词中:loading");
         x=1;
       }
       qc.addData(a);
@@ -137,11 +140,24 @@ function Calculate(){
   var i,j,a,b;
   var l=files.length;
   var xsd;
-  var out={};
+  var out=[];
+  var same=[];
+
+  files.sort(function(a,b){
+    if(!a.wordl){
+      a.wordl=Object.keys(a.words).length;
+    }
+    if(!b.wordl){
+      b.wordl=Object.keys(b.words).length;
+    }
+    return a.wordl>b.wordl;
+  });
+
   console.time("计算相似度总时间");
+  console.log("计算中");
   for(i=0;i<l;i++){
     a=files[i];
-    console.time("计时间--"+a.name);
+    // console.time("计时间--"+a.name);
     for(j=i+1;j<l;j++){
       b=files[j];
 
@@ -149,31 +165,37 @@ function Calculate(){
       if(out[parseInt(xsd*10)])out[parseInt(xsd*10)]++;
       else out[parseInt(xsd*10)]=1;
       //console.log("相熟度--"+a.name+" X "+b.name+" : "+xsd);
+      if(xsd>0.8){
+        same.push({
+          a:a,
+          b:b,
+          xsd:xsd
+        });
+      }
     }
-    console.timeEnd("计时间--"+a.name);
+    //console.timeEnd("计时间--"+a.name);
   }
   console.timeEnd("计算相似度总时间");
+  console.log("加载词典用时 "+loadD+" ms");
+  console.log("分词时间累计 "+strt+" ms");
+  console.log("完成！");
 
   out.forEach(function(a,index){
     console.log('介于'+index/10+"到"+(index+1)/10+'之间有 '+a);
   });
 
-  console.log("加载词典用时 "+loadD+" ms");
-  console.log("分词时间累计 "+strt+" ms");
-  console.log("完成！");
+  console.log("其中相识度大于0.8的有以下文章:");
+  same.forEach(function(a,index){
+    console.log((index+1)+". "+a.a.name+" x "+a.b.name+' = '+a.xsd);
+  });
 }
 
 function ComputSimilarity(a,b){
   var x1=0,x2=0,x3=0;
   var name;
-
-
   for(name in a.words) {
     if(b.words[name]) x1+=a.words[name]*b.words[name];
   }
-
-  
-
   if(!a.sum){
     for(name in a.words) {
       x2+=a.words[name]*a.words[name];
@@ -182,15 +204,13 @@ function ComputSimilarity(a,b){
   }else{
     x2=a.sum;
   }
-
   if(!b.sum){
-    for(name in a.words) {
+    for(name in b.words) {
       x3+=b.words[name]*b.words[name];
     }
     b.sum=x3;
   }else{
     x3=b.sum;
   }
-
   return x1/Math.sqrt(x2*x3);
 }
