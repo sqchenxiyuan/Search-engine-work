@@ -4,6 +4,7 @@ var num=0;
 
 var simplePR =require('./SimplePR.js').index;
 var standardPR =require('./StandardPR.js').index;
+var fastPR =require('./FastPR.js').index;
 
 fs.readFile(__dirname+'/DATA/web-Stanford.txt',"utf-8", function(err, data) {
     if (err) {
@@ -55,6 +56,7 @@ function init(arr){
   console.log('构建完成...');
   console.timeEnd('构建用时');
 
-  // simplePR(net,1/2);
+  simplePR(net,1/2);
   standardPR(net,1/2);
+  fastPR(net,1/2);
 }
