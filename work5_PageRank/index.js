@@ -56,7 +56,36 @@ function init(arr){
   console.log('构建完成...');
   console.timeEnd('构建用时');
 
-  simplePR(net,1/2);
-  standardPR(net,1/2);
-  fastPR(net,1/2);
+  // simplePR(net,1/2);//简单PageRanke
+  // standardPR(net,1/2);//标准
+  // console.log('当随机选取=1时');
+  // fastPR(net,1);//快速
+  // console.log('当随机选取=0.9时');
+  // fastPR(net,0.9);//快速
+  // console.log('当随机选取=0.8时');
+  // fastPR(net,0.8);//快速
+  // console.log('当随机选取=0.7时');
+  // fastPR(net,0.7);//快速
+  // console.log('当随机选取=0.6时');
+  // fastPR(net,0.6);//快速
+  // console.log('当随机选取=0.5时');
+  // fastPR(net,0.5);//快速
+  // console.log('当随机选取=0.4时');
+  // fastPR(net,0.4);//快速
+  // console.log('当随机选取=0.3时');
+  // fastPR(net,0.3);//快速
+  // console.log('当随机选取=0.2时');
+  // fastPR(net,0.2);//快速
+  // console.log('当随机选取=0.1时');
+  fastPR(net,0.15);//快速
+  // console.log('当随机选取=0时');
+  // fastPR(net,0);//快速
 }
+
+var x=
+{
+  form:"hash",//连接向该节点的节点集合
+  to:"hash",//连接到的节点集合
+  outdegree:"number",//出度
+  PR:"number"//当前轮的PageRank值
+};

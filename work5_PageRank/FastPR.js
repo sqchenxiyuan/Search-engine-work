@@ -68,5 +68,6 @@ exports.index=function(net,a){
   arr.forEach(function(node){
     if(max<node.PR)max=node.PR;
   });
+  console.log('完成 '+prnum+' 次迭代');
   console.log('最大PR值：'+max);
 };
